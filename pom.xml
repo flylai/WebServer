@@ -7,6 +7,12 @@
     <groupId>com.lkm</groupId>
     <artifactId>WebServer</artifactId>
     <version>1.0-SNAPSHOT</version>
-
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>28.2-jre</version>
+        </dependency>
+    </dependencies>
 
 </project>
