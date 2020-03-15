@@ -21,4 +21,16 @@ public class RequestLine {
         String value = query.get(key);
         return value == null ? "" : value;
     }
+
+    public RequestMethod getMethod() {
+        return method;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getPath() {
+        return path;
+    }
 }
