@@ -10,6 +10,16 @@ public enum HTTPStatus {
     Forbidden(403, "Forbidden"),
     Not_Found(404, "Not Found");
 
+    private int code;
+    private String message;
+
     HTTPStatus(int code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return "HTTP/1.1 " + code + " " + message;
     }
 }
