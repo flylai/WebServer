@@ -9,12 +9,15 @@ public class RequestLine {
     private RequestMethod method;
     private String url;
     private String path;
+    private String queryString;
 
-    public RequestLine(HashMap<String, String> query, RequestMethod method, String url, String path) {
+    public RequestLine(HashMap<String, String> query, RequestMethod method,
+                       String path, String queryString) {
         this.query = query;
         this.method = method;
-        this.url = url;
+        this.url = path + queryString;
         this.path = path;
+        this.queryString = queryString;
     }
 
     public HashMap<String, String> getQuery() {
@@ -36,5 +39,9 @@ public class RequestLine {
 
     public String getPath() {
         return path;
+    }
+
+    public String getQueryString() {
+        return queryString;
     }
 }

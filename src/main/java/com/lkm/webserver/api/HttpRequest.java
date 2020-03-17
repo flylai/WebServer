@@ -17,7 +17,11 @@ public interface HttpRequest {
 
     String getQueryString();
 
-    String getRequestUri();
+    String getRequestUrl();
+
+    String getQueryValue(String key);
+
+    String getRequestPath();
 
     HashMap<String, String> getCookies();
 

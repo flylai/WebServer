@@ -36,13 +36,22 @@ public class Request implements HttpRequest {
 
     @Override
     public String getQueryString() {
-        // todo
+        return requestLine.getQueryString();
+    }
+
+    @Override
+    public String getRequestUrl() {
         return requestLine.getUrl();
     }
 
     @Override
-    public String getRequestUri() {
-        return requestLine.getUrl();
+    public String getRequestPath() {
+        return requestLine.getPath();
+    }
+
+    @Override
+    public String getQueryValue(String key) {
+        return requestLine.get(key);
     }
 
     @Override

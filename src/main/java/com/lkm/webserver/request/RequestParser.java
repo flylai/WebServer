@@ -4,7 +4,6 @@ import com.lkm.webserver.constant.Misc;
 import com.lkm.webserver.constant.RequestMethod;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class RequestParser {
     public static String[] parseMessage(String message) {
@@ -22,7 +21,7 @@ public class RequestParser {
     }
 
     public static RequestLine parseRequestLine(String message) throws Exception {
-        Map<String, String> query = null;
+        HashMap<String, String> query = null;
         RequestMethod method;
         String path;
 
@@ -37,19 +36,21 @@ public class RequestParser {
         }
 
         // parse path and query
+        // such as /asd/qwe/zxc.html?tyu=x&opq=jkl
         String url = messageArr[1];
         String[] pathArr = url.split("\\?");
-        // such as /asd/qwe/zxc.html?tyu=x&opq=jkl
-        path = pathArr[0];
+        String queryString = "";
+
         if (pathArr.length > 1) {
+            queryString = pathArr[1];
             query = parseQueryString(pathArr[1]);
         }
-        return new RequestLine(query == null ? new HashMap<>() : query, method, url, path);
+        return new RequestLine(query == null ? new HashMap<>() : query, method, pathArr[0], queryString);
     }
 
     public static RequestHeaders parseRequestHeaders(String message) throws Exception {
-        Map<String, String> headers = new HashMap<>();
-        Map<String, String> cookies = new HashMap<>();
+        HashMap<String, String> headers = new HashMap<>();
+        HashMap<String, String> cookies = new HashMap<>();
         String[] headerArr = message.split(Misc.CRLF);
         for (String header : headerArr) {
             String[] arg = header.split(":", 2);
@@ -71,8 +72,8 @@ public class RequestParser {
         return new RequestHeaders(headers, cookies);
     }
 
-    private static Map<String, String> parseQueryString(String message) {
-        Map<String, String> result = new HashMap<>();
+    private static HashMap<String, String> parseQueryString(String message) {
+        HashMap<String, String> result = new HashMap<>();
         String[] queryArr = message.split("&");
         for (String arg : queryArr) {
             String[] argArr = arg.split("=");
