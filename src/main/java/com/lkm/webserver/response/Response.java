@@ -4,19 +4,25 @@ import com.lkm.webserver.api.HttpResponse;
 import com.lkm.webserver.constant.HTTPStatus;
 import com.lkm.webserver.constant.Misc;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 
 public class Response implements HttpResponse {
     private HashMap<String, String> headers;
-    private String body;
+    private byte[] body;
     private HTTPStatus status;
+    private SocketChannel socketChannel;
 
-    public Response() {
-        headers = new HashMap<>();
+    public Response(SocketChannel socketChannel) {
+        this(new HashMap<>(), socketChannel);
     }
 
-    public Response(HashMap<String, String> headers) {
+    public Response(HashMap<String, String> headers, SocketChannel socketChannel) {
         this.headers = headers;
+        this.socketChannel = socketChannel;
+        put("server", Misc.SERVER_NAME);
     }
 
     @Override
@@ -32,13 +38,23 @@ public class Response implements HttpResponse {
     }
 
     @Override
-    public String getBody() {
+    public String getBodyByString() {
+        return new String(body);
+    }
+
+    @Override
+    public byte[] getBodyByByte() {
         return body;
     }
 
     @Override
-    public void setBody(String body) {
+    public void setBody(byte[] body) {
         this.body = body;
+    }
+
+    @Override
+    public void setBody(String body) {
+        this.body = body.getBytes();
     }
 
     @Override
@@ -51,14 +67,27 @@ public class Response implements HttpResponse {
         this.status = status;
     }
 
-    @Override
-    public String toString() {
-        final String[] message = {status.toString() + Misc.CRLF};
-        headers.forEach((k, v) -> message[0] += k + ":" + v + Misc.CRLF);
-        message[0] += "" +
-                "content-length:" + body.getBytes().length +
-                Misc.CRLF + Misc.CRLF +
-                body + "\r\n0\r\n\r\n";
-        return message[0];
+    public void writeToBrowser() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(status.toString());
+        stringBuilder.append(Misc.CRLF);
+        headers.forEach((k, v) -> {
+            stringBuilder.append(k);
+            stringBuilder.append(": ");
+            stringBuilder.append(v);
+            stringBuilder.append(Misc.CRLF);
+        });
+        stringBuilder.append("content-length: ");
+        stringBuilder.append(body.length);
+        stringBuilder.append(Misc.CRLF);
+        stringBuilder.append(Misc.CRLF);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try {
+            byteArrayOutputStream.write(String.valueOf(stringBuilder).getBytes());
+            byteArrayOutputStream.write(body);
+            socketChannel.write(ByteBuffer.wrap(byteArrayOutputStream.toByteArray()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -7,9 +7,13 @@ public interface HttpResponse {
 
     String get(String key);
 
-    String getBody();
+    String getBodyByString();
+
+    byte[] getBodyByByte();
 
     void setBody(String body);
+
+    void setBody(byte[] body);
 
     HTTPStatus getStatus();
 
