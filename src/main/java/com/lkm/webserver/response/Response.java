@@ -11,6 +11,7 @@ import java.util.HashMap;
 
 public class Response implements HttpResponse {
     private HashMap<String, String> headers;
+    private HashMap<String, Cookie> cookies;
     private byte[] body;
     private HTTPStatus status;
     private SocketChannel socketChannel;
@@ -22,6 +23,7 @@ public class Response implements HttpResponse {
     public Response(HashMap<String, String> headers, SocketChannel socketChannel) {
         this.headers = headers;
         this.socketChannel = socketChannel;
+        cookies = new HashMap<>();
         put("server", Misc.SERVER_NAME);
     }
 
@@ -62,6 +64,14 @@ public class Response implements HttpResponse {
         return status;
     }
 
+    public void setCookies(String name, String value, String expires, String path, String domain, int maxAge) {
+        cookies.put(name, new Cookie(value, expires, path, domain, maxAge));
+    }
+
+    public void setCookies(String name, String value) {
+        setCookies(name, value, "", "", "", -2);
+    }
+
     @Override
     public void setStatus(HTTPStatus status) {
         this.status = status;
@@ -75,6 +85,23 @@ public class Response implements HttpResponse {
             stringBuilder.append(k);
             stringBuilder.append(": ");
             stringBuilder.append(v);
+            stringBuilder.append(Misc.CRLF);
+        });
+        cookies.forEach((k, v) -> {
+            stringBuilder.append("set-cookie: ");
+            stringBuilder.append(k).append("=").append(v.getValue()).append(";");
+            if (!v.getDomain().isEmpty()) {
+                stringBuilder.append("domain=").append(v.getDomain()).append(";");
+            }
+            if (!v.getExpires().isEmpty()) {
+                stringBuilder.append("expires=").append(v.getExpires()).append(";");
+            }
+            if (v.getMaxAge() != -2) {
+                stringBuilder.append("max-age=").append(v.getMaxAge()).append(";");
+            }
+            if (!v.getPath().isEmpty()) {
+                stringBuilder.append("path=").append(v.getPath()).append(";");
+            }
             stringBuilder.append(Misc.CRLF);
         });
         stringBuilder.append("content-length: ");
