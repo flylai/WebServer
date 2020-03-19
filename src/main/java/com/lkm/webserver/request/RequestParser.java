@@ -11,7 +11,7 @@ public class RequestParser {
     public static String[] parseMessage(String message) {
         String[] result = new String[3];
         // split header and body
-        List<String> tmp = StringUtil.split(message, Misc.CRLF + Misc.CRLF, 3);
+        List<String> tmp = StringUtil.split(message, Misc.CRLF + Misc.CRLF, 2);
         // post body
         if (tmp.size() > 1) {
             result[2] = tmp.get(1);
@@ -59,7 +59,7 @@ public class RequestParser {
         List<String> headerArr = StringUtil.split(message, Misc.CRLF);
         for (String header : headerArr) {
             List<String> arg = StringUtil.split(header, ":", 2);
-            headers.put(arg.get(0).trim(), arg.get(1).trim());
+            headers.put(arg.get(0).trim().toLowerCase(), arg.get(1).trim());
 
             // cookie: a=1; b=2; c=3
             if ("cookie".equals(arg.get(0).trim().toLowerCase())) {
@@ -88,5 +88,66 @@ public class RequestParser {
             }
         }
         return result;
+    }
+
+    public static RequestBody parseBody(RequestHeaders header, String body) {
+        RequestBody requestBody = new RequestBody();
+        String contentType = header.header("content-type");
+        List<String> contentTypeArr = StringUtil.split(contentType, ";");
+        HashMap<String, String> postQueryStringBody;
+        if (contentTypeArr.size() < 1) {
+            return null;
+        }
+        String type = contentTypeArr.get(0).trim().toLowerCase();
+        if ("application/x-www-form-urlencoded".equals(type)) {
+            // for raw post data
+            postQueryStringBody = parseQueryString(contentTypeArr.get(0));
+        } else if ("multipart/form-data".equals(type)) {
+            int pos = contentTypeArr.get(1).indexOf("=");
+            String boundary = contentTypeArr.get(1).substring(pos + 1);
+            List<String> datas = StringUtil.split(body, "--" + boundary);
+            for (String data : datas) {
+                if (data.isEmpty() || "--\r\n".equals(data)) {
+                    continue;
+                }
+                /*
+                    --Boundary
+                    content-xxx
+                    content-yyy
+                    content-zzz
+
+                    real content
+                    --Boundary--
+                 */
+                List<String> subContent = StringUtil.split(data, Misc.CRLF + Misc.CRLF, 2);
+                // split content xxx/yyy/zzz
+                List<String> subHeader = StringUtil.split(subContent.get(0), Misc.CRLF);
+                String name = "";
+                for (String h : subHeader) {
+                    // split content-xxx=111;aaa=bbb;ccc="ddd"
+                    List<String> args = StringUtil.split(h, ";");
+                    for (String arg : args) {
+                        // split content-xxx=111
+                        List<String> kv = StringUtil.split(arg, "=");
+                        if (kv.size() > 1) {
+                            String tmpName = kv.get(0).trim().toLowerCase();
+                            if ("name".equals(tmpName)) {
+                                name = kv.get(1).substring(1, kv.get(1).length() - 1);
+                            }
+                            if ("filename".equals(tmpName)) {
+                                requestBody.postData.put(tmpName, kv.get(1).substring(1, kv.get(1).length() - 1));
+                            }
+                        }
+                    }
+                }
+                System.out.println(name);
+                // content
+                String realContent = subContent.get(1);
+                // remove CRLF at the end of the content -> \r\n
+                realContent = realContent.substring(0, realContent.length() - 2);
+                requestBody.postData.put(name, realContent);
+            }
+        }
+        return requestBody;
     }
 }
