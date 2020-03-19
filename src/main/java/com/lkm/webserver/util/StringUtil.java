@@ -15,8 +15,13 @@ public class StringUtil {
                 result.add(str.substring(startPosition, endPosition));
                 startPosition = endPosition + patternLen;
                 count++;
+            } else {
+                break;
             }
-            if (count >= limit || endPosition == -1) {
+            if (count >= limit - 1) {
+                if (endPosition < str.length()) {
+                    result.add(str.substring(startPosition));
+                }
                 break;
             }
         }
