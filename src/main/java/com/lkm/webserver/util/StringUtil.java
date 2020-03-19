@@ -8,9 +8,10 @@ public class StringUtil {
         List<String> result = new ArrayList<>(8);
         int count = 0;
         int startPosition = 0;
+        int endPosition = 0;
         int patternLen = patten.length();
         while (true) {
-            int endPosition = str.indexOf(patten, startPosition);
+            endPosition = str.indexOf(patten, startPosition);
             if (endPosition != -1) {
                 result.add(str.substring(startPosition, endPosition));
                 startPosition = endPosition + patternLen;
@@ -19,11 +20,11 @@ public class StringUtil {
                 break;
             }
             if (count >= limit - 1) {
-                if (endPosition < str.length()) {
-                    result.add(str.substring(startPosition));
-                }
                 break;
             }
+        }
+        if (endPosition < str.length()) {
+            result.add(str.substring(startPosition));
         }
         return result;
     }
