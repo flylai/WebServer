@@ -13,7 +13,7 @@ public class RequestHeaders {
 
     public String header(String key) {
         String value = headers.get(key);
-        return key == null ? "" : value;
+        return value == null ? "" : value;
     }
 
     public String cookies(String key) {
