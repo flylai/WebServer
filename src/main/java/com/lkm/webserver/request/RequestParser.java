@@ -102,6 +102,7 @@ public class RequestParser {
         if ("application/x-www-form-urlencoded".equals(type)) {
             // for raw post data
             postQueryStringBody = parseQueryString(contentTypeArr.get(0));
+            requestBody.setPostData(postQueryStringBody);
         } else if ("multipart/form-data".equals(type)) {
             int pos = contentTypeArr.get(1).indexOf("=");
             String boundary = contentTypeArr.get(1).substring(pos + 1);
@@ -122,30 +123,50 @@ public class RequestParser {
                 List<String> subContent = StringUtil.split(data, Misc.CRLF + Misc.CRLF, 2);
                 // split content xxx/yyy/zzz
                 List<String> subHeader = StringUtil.split(subContent.get(0), Misc.CRLF);
+
                 String name = "";
+                String value = "";
+                boolean isFile = false;
+
                 for (String h : subHeader) {
-                    // split content-xxx=111;aaa=bbb;ccc="ddd"
-                    List<String> args = StringUtil.split(h, ";");
+                    if (h.isEmpty()) {
+                        continue;
+                    }
+                    // split content-xxx:qwe=111;aaa=bbb;ccc="ddd"
+                    List<String> item = StringUtil.split(h, ":");
+                    // split qwe=111;aaa=bbb;ccc="ddd"
+                    List<String> args = StringUtil.split(item.get(1), ";");
                     for (String arg : args) {
-                        // split content-xxx=111
+                        // split qwe=111
                         List<String> kv = StringUtil.split(arg, "=");
+                        String tmpName = kv.get(0).trim().toLowerCase();
                         if (kv.size() > 1) {
-                            String tmpName = kv.get(0).trim().toLowerCase();
                             if ("name".equals(tmpName)) {
                                 name = kv.get(1).substring(1, kv.get(1).length() - 1);
                             }
                             if ("filename".equals(tmpName)) {
-                                requestBody.postData.put(tmpName, kv.get(1).substring(1, kv.get(1).length() - 1));
+                                // ignore it, only content-disposition:xxx;file;yyy mark as file
+                                value = kv.get(1).substring(1, kv.get(1).length() - 1);
+                            }
+                        } else {
+                            if ("file".equals(tmpName)) {
+                                isFile = true;
                             }
                         }
                     }
                 }
-                System.out.println(name);
                 // content
                 String realContent = subContent.get(1);
                 // remove CRLF at the end of the content -> \r\n
                 realContent = realContent.substring(0, realContent.length() - 2);
-                requestBody.postData.put(name, realContent);
+                if (isFile) {
+                    //         name="aaa" filename="bbb"
+                    requestBody.getPostData().put(name, value);
+                    //                     filename  file content
+                    requestBody.getFile().put(value, realContent);
+                } else {
+                    requestBody.getPostData().put(name, realContent);
+                }
             }
         }
         return requestBody;
