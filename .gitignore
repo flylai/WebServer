@@ -23,6 +23,7 @@ hs_err_pid*
 
 # Build files
 out/*
+target/*
 
 # IDEA related
 .idea/
