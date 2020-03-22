@@ -4,6 +4,7 @@ import com.lkm.webserver.connection.Connection;
 import com.lkm.webserver.connection.ConnectionPool;
 import com.lkm.webserver.connection.Processor;
 import com.lkm.webserver.constant.Misc;
+import com.lkm.webserver.servlet.LoadServlet;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -11,12 +12,13 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Main {
     public static void main(String[] args) {
+        Processor.servletList = LoadServlet.buildServletMap();
         Server server = new Server();
     }
 }
@@ -52,7 +54,7 @@ class Server {
                             ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
                             SocketChannel socketChannel = serverSocketChannel.accept();
                             socketChannel.configureBlocking(false);
-                            socketChannel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                            socketChannel.register(selector, SelectionKey.OP_READ);
                         }
                         if (key.isReadable()) {
                             SocketChannel socketChannel = (SocketChannel) key.channel();
@@ -62,7 +64,7 @@ class Server {
                             readBuffer.flip();
                             if (messageSize > 0) {
                                 ConnectionPool.getConnectionPool().putIfAbsent(socketChannelHash,
-                                        new Connection(socketChannel, new ArrayList<>()));
+                                        new Connection(socketChannel, new CopyOnWriteArrayList<>()));
                                 ConnectionPool.getConnectionPool().get(socketChannelHash).updateLastConnectTime();
 
                                 byte[] tmp = new byte[messageSize];
@@ -72,10 +74,12 @@ class Server {
                                 ConnectionPool.getConnectionPool().get(socketChannelHash)
                                         .addLength(messageSize);
                             }
+                            if (messageSize == -1) {
+                                ConnectionPool.getConnectionPool().remove(socketChannelHash);
+                            }
                             if (messageSize < Misc.BUFFER_SIZE) {
                                 Processor.requestExecutor.execute(() -> {
                                     Processor.processRequest(ConnectionPool.getConnectionPool().get(socketChannelHash));
-                                    ConnectionPool.getConnectionPool().remove(socketChannelHash);
                                 });
                             }
                         }
