@@ -8,7 +8,7 @@ public class ByteArrayUtil {
             return -1;
         }
         char firstChar = patten.charAt(0);
-        for (int i = startPosition; i < arrLen - pattenLen; i++) {
+        for (int i = startPosition; i <= arrLen - pattenLen; i++) {
             if (array[i] == firstChar) {
                 boolean found = true;
                 for (int j = 1; j < pattenLen; j++) {
