@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 public interface HttpRequest {
 
-    HashMap<String, String> getArgv();
+    HashMap<String, String> getQueryMap();
 
     HashMap<String, String> getHeaders();
 
@@ -27,5 +27,7 @@ public interface HttpRequest {
 
     String getCookie(String key);
 
+    String getPostData(String key);
 
+    byte[] getFile(String key);
 }

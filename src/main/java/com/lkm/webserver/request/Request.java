@@ -8,14 +8,16 @@ import java.util.HashMap;
 public class Request implements HttpRequest {
     private RequestLine requestLine;
     private RequestHeaders requestHeaders;
+    private RequestBody requestBody;
 
-    public Request(RequestLine requestLine, RequestHeaders requestHeaders) {
+    public Request(RequestLine requestLine, RequestHeaders requestHeaders, RequestBody requestBody) {
         this.requestLine = requestLine;
         this.requestHeaders = requestHeaders;
+        this.requestBody = requestBody;
     }
 
     @Override
-    public HashMap<String, String> getArgv() {
+    public HashMap<String, String> getQueryMap() {
         return requestLine.getQuery();
     }
 
@@ -64,6 +66,24 @@ public class Request implements HttpRequest {
         return requestHeaders.cookies(key);
     }
 
+    @Override
+    public String getPostData(String key) {
+        if (requestBody == null) {
+            return "";
+        }
+        String value = requestBody.getPostData().get(key);
+        return value == null ? "" : value;
+    }
+
+    @Override
+    public byte[] getFile(String key) {
+        if (requestBody == null) {
+            return new byte[0];
+        }
+        byte[] value = requestBody.getFile(key);
+        return value == null ? new byte[0] : value;
+    }
+
     public RequestLine getRequestLine() {
         return requestLine;
     }
@@ -79,4 +99,14 @@ public class Request implements HttpRequest {
     public void setRequestHeaders(RequestHeaders requestHeaders) {
         this.requestHeaders = requestHeaders;
     }
+
+    public RequestBody getRequestBody() {
+        return requestBody;
+    }
+
+    public void setRequestBody(RequestBody requestBody) {
+        this.requestBody = requestBody;
+    }
+
+
 }

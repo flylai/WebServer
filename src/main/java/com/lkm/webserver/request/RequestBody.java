@@ -4,13 +4,13 @@ import java.util.HashMap;
 
 public class RequestBody {
     private HashMap<String, String> postData;
-    private HashMap<String, String> file;
+    private HashMap<String, byte[]> file;
 
     public RequestBody() {
         this(new HashMap<>(), new HashMap<>());
     }
 
-    public RequestBody(HashMap<String, String> postData, HashMap<String, String> file) {
+    public RequestBody(HashMap<String, String> postData, HashMap<String, byte[]> file) {
         this.postData = postData;
         this.file = file;
     }
@@ -23,8 +23,12 @@ public class RequestBody {
         return postData;
     }
 
-    public HashMap<String, String> getFile() {
+    public HashMap<String, byte[]> getFiles() {
         return file;
+    }
+
+    public byte[] getFile(String key) {
+        return file.get(key);
     }
 
 }
