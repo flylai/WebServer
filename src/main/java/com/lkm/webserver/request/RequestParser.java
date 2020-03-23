@@ -1,27 +1,58 @@
 package com.lkm.webserver.request;
 
+import com.lkm.webserver.connection.Connection;
 import com.lkm.webserver.constant.Misc;
 import com.lkm.webserver.constant.RequestMethod;
+import com.lkm.webserver.exception.ContentLengthError;
+import com.lkm.webserver.util.ByteArrayUtil;
 import com.lkm.webserver.util.StringUtil;
 
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class RequestParser {
-    public static String[] parseMessage(String message) {
-        String[] result = new String[3];
-        // split header and body
-        List<String> tmp = StringUtil.split(message, Misc.CRLF + Misc.CRLF, 2);
-        // post body
-        if (tmp.size() > 1) {
-            result[2] = tmp.get(1);
+    public static Request parseMessage(Connection connection) throws Exception {
+        ByteArrayOutputStream messageStream = connection.getHttpMessage();
+        byte[] message = messageStream.toByteArray();
+        int bodyIndex = ByteArrayUtil.indexof(message, Misc.CRLF + Misc.CRLF);
+        int lineIndex = ByteArrayUtil.indexof(message, Misc.CRLF);
+
+        byte[] requestLineByteArr = new byte[lineIndex];
+        System.arraycopy(message, 0, requestLineByteArr, 0, lineIndex);
+
+        // 2 means CRLF -> "\r\n"
+        byte[] requestHeaderByteArr = new byte[bodyIndex - lineIndex - 2];
+        System.arraycopy(message, lineIndex + 2, requestHeaderByteArr, 0, bodyIndex - lineIndex - 2);
+
+        RequestLine requestLine = null;
+        RequestHeaders requestHeaders = null;
+        RequestBody requestBody = null;
+
+        requestLine = parseRequestLine(new String(requestLineByteArr));
+        requestHeaders = parseRequestHeaders(new String(requestHeaderByteArr));
+        if (requestLine.getMethod() == RequestMethod.POST) {
+            int bodyLen = Integer.parseInt(requestHeaders.header("content-length"));
+            long startTime = System.currentTimeMillis();
+            boolean interrupt = false;
+            // 4 means CRLF x 2 -> "\r\n\r\n"
+            while (messageStream.size() - bodyIndex - 4 != bodyLen) {
+                // blocking... waiting for body
+                if (System.currentTimeMillis() - startTime > Misc.BLOCK_TIMEOUT) {
+                    interrupt = true;
+                    break;
+                }
+            }
+            if (interrupt) {
+                throw new ContentLengthError(bodyLen, messageStream.size());
+            }
+            byte[] requestBodyByteArr = new byte[bodyLen];
+            System.arraycopy(messageStream.toByteArray(), bodyIndex + 4, requestBodyByteArr, 0, bodyLen);
+            requestBody = parseBody(requestHeaders, requestBodyByteArr);
         }
-        List<String> lineAndHeader = StringUtil.split(tmp.get(0), Misc.CRLF, 2);
-        // request line
-        result[0] = lineAndHeader.get(0);
-        // headers
-        result[1] = lineAndHeader.get(1);
-        return result;
+
+        return new Request(requestLine, requestHeaders, requestBody);
     }
 
     public static RequestLine parseRequestLine(String message) throws Exception {
@@ -90,7 +121,7 @@ public class RequestParser {
         return result;
     }
 
-    public static RequestBody parseBody(RequestHeaders header, String body) {
+    public static RequestBody parseBody(RequestHeaders header, byte[] body) {
         RequestBody requestBody = new RequestBody();
         String contentType = header.header("content-type");
         List<String> contentTypeArr = StringUtil.split(contentType, ";");
@@ -106,11 +137,22 @@ public class RequestParser {
         } else if ("multipart/form-data".equals(type)) {
             int pos = contentTypeArr.get(1).indexOf("=");
             String boundary = contentTypeArr.get(1).substring(pos + 1);
-            List<String> datas = StringUtil.split(body, "--" + boundary);
-            for (String data : datas) {
-                if (data.isEmpty() || "--\r\n".equals(data)) {
-                    continue;
-                }
+
+            boundary = Misc.CRLF + "--" + boundary;
+            int prePos = boundary.length();
+            int curPos = ByteArrayUtil.indexof(body, boundary, boundary.length());
+            List<byte[]> datas = new ArrayList<>();
+            while (curPos != -1) {
+                byte[] data = new byte[curPos - prePos];
+                System.arraycopy(body, prePos, data, 0, curPos - prePos);
+                datas.add(data);
+                prePos = curPos + boundary.length();
+                curPos = ByteArrayUtil.indexof(body, boundary, prePos);
+            }
+
+            for (byte[] data : datas) {
+                // split header and body
+                int crlfPosition = ByteArrayUtil.indexof(data, Misc.CRLF + Misc.CRLF);
                 /*
                     --Boundary
                     content-xxx
@@ -120,7 +162,11 @@ public class RequestParser {
                     real content
                     --Boundary--
                  */
-                List<String> subContent = StringUtil.split(data, Misc.CRLF + Misc.CRLF, 2);
+                List<String> subContent = StringUtil.split(new String(data, 0, crlfPosition),
+                        Misc.CRLF + Misc.CRLF, 2);
+                byte[] realBody = new byte[data.length - crlfPosition - 4];
+                System.arraycopy(data, crlfPosition + 4, realBody, 0, data.length - crlfPosition - 4);
+
                 // split content xxx/yyy/zzz
                 List<String> subHeader = StringUtil.split(subContent.get(0), Misc.CRLF);
 
@@ -155,19 +201,16 @@ public class RequestParser {
                         }
                     }
                 }
-                // content
-                String realContent = subContent.get(1);
-                // remove CRLF at the end of the content -> \r\n
-                realContent = realContent.substring(0, realContent.length() - 2);
                 if (isFile) {
                     //         name="aaa" filename="bbb"
                     requestBody.getPostData().put(name, value);
                     //                     filename  file content
-                    requestBody.getFile().put(value, realContent);
+                    requestBody.getFiles().put(value, realBody);
                 } else {
-                    requestBody.getPostData().put(name, realContent);
+                    requestBody.getPostData().put(name, new String(realBody));
                 }
             }
+
         }
         return requestBody;
     }
