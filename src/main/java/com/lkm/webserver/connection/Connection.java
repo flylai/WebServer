@@ -1,25 +1,23 @@
 package com.lkm.webserver.connection;
 
-import com.lkm.webserver.request.RequestHeaders;
-import com.lkm.webserver.request.RequestLine;
+import com.lkm.webserver.request.Request;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
 
 public class Connection {
     private long lastConnectTime;
     private SocketChannel socketChannel;
 
-    private int length;
-    private ArrayList<byte[]> httpMessage;
+    private ByteArrayOutputStream httpMessage;
 
-    private RequestLine requestLine;
-    private RequestHeaders requestHeaders;
+    private Request request;
+    private boolean running;
 
-    public Connection(SocketChannel socketChannel, ArrayList<byte[]> httpMessage) {
+    public Connection(SocketChannel socketChannel) {
         this.lastConnectTime = System.currentTimeMillis();
         this.socketChannel = socketChannel;
-        this.httpMessage = httpMessage;
+        this.httpMessage = new ByteArrayOutputStream();
     }
 
     public long getLastConnectTime() {
@@ -34,35 +32,23 @@ public class Connection {
         return socketChannel;
     }
 
-    public int getLength() {
-        return length;
-    }
-
-    public void addLength(int length) {
-        this.length += length;
-    }
-
-    public void resetLength() {
-        length = 0;
-    }
-
-    public ArrayList<byte[]> getHttpMessage() {
+    public ByteArrayOutputStream getHttpMessage() {
         return httpMessage;
     }
 
-    public RequestLine getRequestLine() {
-        return requestLine;
+    public Request getRequest() {
+        return request;
     }
 
-    public void setRequestLine(RequestLine requestLine) {
-        this.requestLine = requestLine;
+    public void setRequest(Request request) {
+        this.request = request;
     }
 
-    public RequestHeaders getRequestHeaders() {
-        return requestHeaders;
+    public boolean isRunning() {
+        return running;
     }
 
-    public void setRequestHeaders(RequestHeaders requestHeaders) {
-        this.requestHeaders = requestHeaders;
+    public void setRunning(boolean running) {
+        this.running = running;
     }
 }
