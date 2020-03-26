@@ -1,6 +1,8 @@
 package com.lkm.webserver.request;
 
 import com.lkm.webserver.api.HttpRequest;
+import com.lkm.webserver.connection.ConnectionPool;
+import com.lkm.webserver.constant.Misc;
 import com.lkm.webserver.constant.RequestMethod;
 
 import java.util.HashMap;
@@ -82,6 +84,15 @@ public class Request implements HttpRequest {
         }
         byte[] value = requestBody.getFile(key);
         return value == null ? new byte[0] : value;
+    }
+
+    @Override
+    public String getAttribute(String key) {
+        String sessionId = getCookie(Misc.SESSION_NAME);
+        if (sessionId.isEmpty()) {
+            return sessionId;
+        }
+        return ConnectionPool.getAttribute(sessionId, key);
     }
 
     public RequestLine getRequestLine() {

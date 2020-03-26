@@ -1,13 +1,16 @@
 package com.lkm.webserver.response;
 
 import com.lkm.webserver.api.HttpResponse;
+import com.lkm.webserver.connection.ConnectionPool;
 import com.lkm.webserver.constant.HTTPStatus;
 import com.lkm.webserver.constant.Misc;
+import com.lkm.webserver.request.Request;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
+import java.util.UUID;
 
 public class Response implements HttpResponse {
     private HashMap<String, String> headers;
@@ -15,6 +18,7 @@ public class Response implements HttpResponse {
     private byte[] body;
     private HTTPStatus status;
     private SocketChannel socketChannel;
+    private String sessionId;
 
     public Response(SocketChannel socketChannel) {
         this(new HashMap<>(), socketChannel);
@@ -73,11 +77,34 @@ public class Response implements HttpResponse {
     }
 
     @Override
+    public void startSession(Request request) {
+        sessionId = request.getCookie(Misc.SESSION_NAME);
+        if (sessionId.isEmpty()) {
+            sessionId = UUID.randomUUID().toString().replace("-", "").toUpperCase();
+            ConnectionPool.addSession(sessionId);
+            setCookies(Misc.SESSION_NAME, sessionId);
+        }
+    }
+
+    @Override
+    public void setAttribute(String key, String value) {
+        ConnectionPool.setAttribute(sessionId, key, value);
+    }
+
+    @Override
+    public void removeSession() {
+        ConnectionPool.deleteSession(sessionId);
+    }
+
+    @Override
     public void setStatus(HTTPStatus status) {
         this.status = status;
     }
 
     public void writeToBrowser() {
+        if (!socketChannel.isConnected()) {
+            return;
+        }
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(status.toString());
         stringBuilder.append(Misc.CRLF);

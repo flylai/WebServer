@@ -1,6 +1,7 @@
 package com.lkm.webserver.api;
 
 import com.lkm.webserver.constant.HTTPStatus;
+import com.lkm.webserver.request.Request;
 
 public interface HttpResponse {
     void put(String key, String value);
@@ -18,4 +19,10 @@ public interface HttpResponse {
     HTTPStatus getStatus();
 
     void setStatus(HTTPStatus status);
+
+    void startSession(Request request);
+
+    void setAttribute(String key, String value);
+
+    void removeSession();
 }

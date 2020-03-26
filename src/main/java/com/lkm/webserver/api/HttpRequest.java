@@ -30,4 +30,7 @@ public interface HttpRequest {
     String getPostData(String key);
 
     byte[] getFile(String key);
+
+    String getAttribute(String key);
+
 }
