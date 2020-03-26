@@ -79,7 +79,7 @@ public class Response implements HttpResponse {
     @Override
     public void startSession(Request request) {
         sessionId = request.getCookie(Misc.SESSION_NAME);
-        if (sessionId.isEmpty()) {
+        if (sessionId.isEmpty() || !ConnectionPool.isSessionValid(sessionId)) {
             sessionId = UUID.randomUUID().toString().replace("-", "").toUpperCase();
             ConnectionPool.addSession(sessionId);
             setCookies(Misc.SESSION_NAME, sessionId);

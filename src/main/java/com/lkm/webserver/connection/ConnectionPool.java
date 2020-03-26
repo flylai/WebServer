@@ -1,5 +1,7 @@
 package com.lkm.webserver.connection;
 
+import java.io.IOException;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionPool {
@@ -8,6 +10,10 @@ public class ConnectionPool {
 
     public static ConcurrentHashMap<Integer, Connection> getConnectionPool() {
         return connectionPool;
+    }
+
+    public static boolean isSessionValid(String sessionId) {
+        return session.containsKey(sessionId);
     }
 
     public static void addSession(String sessionId) {
@@ -19,11 +25,26 @@ public class ConnectionPool {
     }
 
     public static String getAttribute(String sessionId, String key) {
-        return session.get(sessionId).getAttribute(key);
+        Session tmp = session.get(sessionId);
+        if (tmp != null) {
+            return session.get(sessionId).getAttribute(key);
+        }
+        return "";
     }
 
     public static void setAttribute(String sessionId, String key, String value) {
         session.get(sessionId).setAttribute(key, value);
     }
 
+    public static void removeSocket(SocketChannel socketChannel) {
+        if (connectionPool.containsKey(socketChannel.hashCode())) {
+            try {
+                socketChannel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        connectionPool.remove(socketChannel.hashCode());
+    }
 }
+
