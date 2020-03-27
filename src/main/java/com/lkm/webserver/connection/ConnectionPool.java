@@ -12,6 +12,10 @@ public class ConnectionPool {
         return connectionPool;
     }
 
+    public static ConcurrentHashMap<String, Session> getSession() {
+        return session;
+    }
+
     public static boolean isSessionValid(String sessionId) {
         return session.containsKey(sessionId);
     }
