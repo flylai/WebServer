@@ -28,19 +28,13 @@ public class Response implements HttpResponse {
         this.headers = headers;
         this.socketChannel = socketChannel;
         cookies = new HashMap<>();
-        put("server", Misc.SERVER_NAME);
+        setHeader("server", Misc.SERVER_NAME);
     }
 
     @Override
-    public void put(String key, String value) {
+    public void setHeader(String key, String value) {
         key = key.toLowerCase();
         headers.put(key, value);
-    }
-
-    @Override
-    public String get(String key) {
-        String value = headers.get(key);
-        return value == null ? "" : value;
     }
 
     @Override

@@ -4,9 +4,7 @@ import com.lkm.webserver.constant.HTTPStatus;
 import com.lkm.webserver.request.Request;
 
 public interface HttpResponse {
-    void put(String key, String value);
-
-    String get(String key);
+    void setHeader(String key, String value);
 
     String getBodyByString();
 
