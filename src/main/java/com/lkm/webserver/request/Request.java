@@ -87,6 +87,14 @@ public class Request implements HttpRequest {
     }
 
     @Override
+    public HashMap<String, byte[]> getFile() {
+        if (requestBody == null) {
+            return new HashMap<>();
+        }
+        return requestBody.getFile();
+    }
+
+    @Override
     public String getAttribute(String key) {
         String sessionId = getCookie(Misc.SESSION_NAME);
         if (sessionId.isEmpty()) {

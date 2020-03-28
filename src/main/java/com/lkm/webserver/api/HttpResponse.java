@@ -23,4 +23,10 @@ public interface HttpResponse {
     void setAttribute(String key, String value);
 
     void removeSession();
+
+    void setCookies(String name, String value, String expires, String path, String domain, int maxAge);
+
+    void setCookies(String name, String value);
+
+    void writeToBrowser();
 }

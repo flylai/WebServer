@@ -205,7 +205,7 @@ public class RequestParser {
                     //         name="aaa" filename="bbb"
                     requestBody.getPostData().put(name, value);
                     //                     filename  file content
-                    requestBody.getFiles().put(value, realBody);
+                    requestBody.getFile().put(value, realBody);
                 } else {
                     requestBody.getPostData().put(name, new String(realBody));
                 }

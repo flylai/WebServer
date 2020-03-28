@@ -62,10 +62,12 @@ public class Response implements HttpResponse {
         return status;
     }
 
+    @Override
     public void setCookies(String name, String value, String expires, String path, String domain, int maxAge) {
         cookies.put(name, new Cookie(value, expires, path, domain, maxAge));
     }
 
+    @Override
     public void setCookies(String name, String value) {
         setCookies(name, value, "", "", "", -2);
     }
@@ -95,6 +97,7 @@ public class Response implements HttpResponse {
         this.status = status;
     }
 
+    @Override
     public void writeToBrowser() {
         if (!socketChannel.isConnected()) {
             return;

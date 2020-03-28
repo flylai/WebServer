@@ -31,6 +31,8 @@ public interface HttpRequest {
 
     byte[] getFile(String key);
 
+    HashMap<String, byte[]> getFile();
+
     String getAttribute(String key);
 
 }

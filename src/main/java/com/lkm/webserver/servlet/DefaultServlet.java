@@ -1,10 +1,10 @@
 package com.lkm.webserver.servlet;
 
+import com.lkm.webserver.api.HttpRequest;
+import com.lkm.webserver.api.HttpResponse;
 import com.lkm.webserver.api.Servlet;
 import com.lkm.webserver.constant.HTTPStatus;
 import com.lkm.webserver.constant.Misc;
-import com.lkm.webserver.request.Request;
-import com.lkm.webserver.response.Response;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class DefaultServlet implements Servlet {
     @Override
-    public void doGet(Request request, Response response) {
+    public void doGet(HttpRequest request, HttpResponse response) {
         String path = request.getRequestPath();
         path = Misc.WWW_ROOT + path;
         byte[] fileContent = new byte[0];
@@ -44,7 +44,7 @@ public class DefaultServlet implements Servlet {
     }
 
     @Override
-    public void doPost(Request request, Response response) {
+    public void doPost(HttpRequest request, HttpResponse response) {
     }
 
     private byte[] readFile(File file, int start, int end) throws IOException {

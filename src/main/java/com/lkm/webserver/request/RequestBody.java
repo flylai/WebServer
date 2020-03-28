@@ -23,7 +23,11 @@ public class RequestBody {
         return postData;
     }
 
-    public HashMap<String, byte[]> getFiles() {
+    public String getPostData(String key) {
+        return postData.get(key);
+    }
+
+    public HashMap<String, byte[]> getFile() {
         return file;
     }
 
