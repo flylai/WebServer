@@ -1,6 +1,6 @@
 # WSX - A Simple WebServer written in Java
 
-A multi-thread webserver, based on NIO and simplified HTTP protocol is supported.
+A multi-thread webserver, based on NIO and simplified HTTP/1.1 protocol is supported.
 
 ## Feature
 
