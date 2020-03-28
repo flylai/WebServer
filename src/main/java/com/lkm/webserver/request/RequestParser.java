@@ -191,8 +191,9 @@ public class RequestParser {
                                 name = kv.get(1).substring(1, kv.get(1).length() - 1);
                             }
                             if ("filename".equals(tmpName)) {
-                                // ignore it, only content-disposition:xxx;file;yyy mark as file
+                                // mark as file
                                 value = kv.get(1).substring(1, kv.get(1).length() - 1);
+                                isFile = true;
                             }
                         } else {
                             if ("file".equals(tmpName)) {
