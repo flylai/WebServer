@@ -9,6 +9,7 @@ import com.lkm.webserver.constant.Misc;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class DefaultServlet implements Servlet {
     @Override
@@ -18,6 +19,35 @@ public class DefaultServlet implements Servlet {
         byte[] fileContent = new byte[0];
         String range = request.getHeader("range");
         File file = new File(path);
+
+        String mimeType = null;
+        try {
+            mimeType = Files.probeContentType(file.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (mimeType == null) {
+            String filename = file.getName();
+            int position = filename.lastIndexOf('.');
+            String extension = filename.substring(position + 1);
+            switch (extension) {
+                case "js":
+                    mimeType = "text/javascript";
+                    break;
+                case "css":
+                    mimeType = "text/css";
+                    break;
+                case "json ":
+                    mimeType = "application/json";
+                    break;
+                default:
+                    mimeType = null;
+                    break;
+            }
+        }
+        if (mimeType != null) {
+            response.setHeader("content-type", mimeType);
+        }
 
         if (file.isFile() && file.exists()) {
             try {
