@@ -28,6 +28,18 @@ public class Processor {
                     new LinkedBlockingQueue<>(),
                     threadFactory);
 
+    private static final ThreadFactory serverThreadFactory = new ThreadFactoryBuilder()
+            .setNameFormat("Server and cleaner Thread")
+            .build();
+
+    public static final ExecutorService serverExecutor =
+            new ThreadPoolExecutor(0,
+                    Misc.MAX_CONNECTION_POOL_SIZE,
+                    Misc.EXPIRES_TIME,
+                    TimeUnit.SECONDS,
+                    new SynchronousQueue<>(),
+                    serverThreadFactory);
+
     public static void processRequest(Connection connection) {
         if (connection == null || connection.isRunning() || connection.getHttpMessage().size() == 0) {
             return;
