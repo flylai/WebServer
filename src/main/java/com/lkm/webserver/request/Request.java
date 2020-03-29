@@ -78,6 +78,11 @@ public class Request implements HttpRequest {
     }
 
     @Override
+    public HashMap<String, String> getPostData() {
+        return requestBody.getPostData();
+    }
+
+    @Override
     public byte[] getFile(String key) {
         if (requestBody == null) {
             return new byte[0];

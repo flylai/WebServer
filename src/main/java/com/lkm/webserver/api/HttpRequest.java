@@ -29,6 +29,8 @@ public interface HttpRequest {
 
     String getPostData(String key);
 
+    HashMap<String, String> getPostData();
+
     byte[] getFile(String key);
 
     HashMap<String, byte[]> getFile();
