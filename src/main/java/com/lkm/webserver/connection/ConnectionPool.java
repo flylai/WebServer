@@ -41,12 +41,10 @@ public class ConnectionPool {
     }
 
     public static void removeSocket(SocketChannel socketChannel) {
-        if (connectionPool.containsKey(socketChannel.hashCode())) {
-            try {
-                socketChannel.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            socketChannel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         connectionPool.remove(socketChannel.hashCode());
     }

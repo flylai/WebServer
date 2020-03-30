@@ -14,8 +14,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
-public
-class Server {
+public class Server {
     ServerSocketChannel serverSocketChannel;
     Selector selector;
 
@@ -65,6 +64,7 @@ class Server {
                             }
                             if (messageSize == -1) {
                                 ConnectionPool.removeSocket(socketChannel);
+                                continue;
                             }
                             if (messageSize < Misc.BUFFER_SIZE) {
                                 Processor.requestExecutor.execute(() -> {
