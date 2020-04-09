@@ -1,7 +1,7 @@
 package com.lkm.webserver.api;
 
 import com.lkm.webserver.constant.HTTPStatus;
-import com.lkm.webserver.request.Request;
+import com.lkm.webserver.response.Cookie;
 
 public interface HttpResponse {
     void setHeader(String key, String value);
@@ -18,13 +18,13 @@ public interface HttpResponse {
 
     void setStatus(HTTPStatus status);
 
-    void startSession(Request request);
+    void startSession(HttpRequest request);
 
-    void setAttribute(String key, String value);
+    void setSession(String key, String value);
 
     void removeSession();
 
-    void setCookies(String name, String value, String expires, String path, String domain, int maxAge);
+    void setCookies(Cookie cookie);
 
     void setCookies(String name, String value);
 

@@ -35,6 +35,6 @@ public interface HttpRequest {
 
     HashMap<String, byte[]> getFile();
 
-    String getAttribute(String key);
+    String getSession(String key);
 
 }

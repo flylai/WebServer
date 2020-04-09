@@ -100,7 +100,7 @@ public class Request implements HttpRequest {
     }
 
     @Override
-    public String getAttribute(String key) {
+    public String getSession(String key) {
         String sessionId = getCookie(Misc.SESSION_NAME);
         if (sessionId.isEmpty()) {
             return sessionId;

@@ -1,10 +1,10 @@
 package com.lkm.webserver.response;
 
+import com.lkm.webserver.api.HttpRequest;
 import com.lkm.webserver.api.HttpResponse;
 import com.lkm.webserver.connection.ConnectionPool;
 import com.lkm.webserver.constant.HTTPStatus;
 import com.lkm.webserver.constant.Misc;
-import com.lkm.webserver.request.Request;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -63,17 +63,17 @@ public class Response implements HttpResponse {
     }
 
     @Override
-    public void setCookies(String name, String value, String expires, String path, String domain, int maxAge) {
-        cookies.put(name, new Cookie(value, expires, path, domain, maxAge));
+    public void setCookies(Cookie cookie) {
+        cookies.put(cookie.getKey(), cookie);
     }
 
     @Override
     public void setCookies(String name, String value) {
-        setCookies(name, value, "", "", "", -2);
+        setCookies(new Cookie.Builder(name, value).build());
     }
 
     @Override
-    public void startSession(Request request) {
+    public void startSession(HttpRequest request) {
         sessionId = request.getCookie(Misc.SESSION_NAME);
         if (sessionId.isEmpty() || !ConnectionPool.isSessionValid(sessionId)) {
             sessionId = UUID.randomUUID().toString().replace("-", "").toUpperCase();
@@ -83,7 +83,7 @@ public class Response implements HttpResponse {
     }
 
     @Override
-    public void setAttribute(String key, String value) {
+    public void setSession(String key, String value) {
         ConnectionPool.setAttribute(sessionId, key, value);
     }
 
