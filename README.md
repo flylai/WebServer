@@ -1,4 +1,4 @@
-# WSX - A Simple WebServer written in Java
+# WSX - A simple WebServer written in Java
 
 A multi-thread webserver, based on NIO and simplified HTTP/1.1 protocol is supported.
 
@@ -15,7 +15,7 @@ A multi-thread webserver, based on NIO and simplified HTTP/1.1 protocol is suppo
 
 ## Usage
 
-**Java 1.8 or higher is required**
+**Java 8 or higher is required**
 
 1. Edit `constant/Misc.java` to modify configuration
 2. Servlet class in `WWW_CLASSES` will be auto loaded
@@ -40,5 +40,5 @@ public class YourServlet implements Servlet {
 ```
 Enjoy it.
 
-## Licence
+## License
 MIT
