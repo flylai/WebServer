@@ -7,8 +7,8 @@ import com.lkm.webserver.constant.HTTPStatus;
 import com.lkm.webserver.constant.Misc;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 
 public class DefaultServlet implements Servlet {
@@ -19,7 +19,6 @@ public class DefaultServlet implements Servlet {
         byte[] fileContent = new byte[0];
         String range = request.getHeader("range");
         File file = new File(path);
-
         if (file.isFile() && file.exists()) {
             String mimeType = null;
             try {
@@ -49,23 +48,27 @@ public class DefaultServlet implements Servlet {
             if (mimeType != null) {
                 response.setHeader("content-type", mimeType);
             }
-
             try {
+                RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
                 if (!range.isEmpty()) {
                     response.setStatus(HTTPStatus.Partial_Content);
                     String[] rangeArr = range.split("=")[1].trim().split("-");
                     int start = Integer.parseInt(rangeArr[0]);
                     int end = Integer.parseInt(rangeArr[1]);
-                    fileContent = readFile(file, start, end);
+                    fileContent = readFile(randomAccessFile, start, end);
                     response.setHeader("content-range", "bytes " + start + "-" + end + "/" + fileContent.length);
                 } else {
                     response.setStatus(HTTPStatus.OK);
-                    fileContent = readFile(file, -1, -1);
+                    fileContent = readFile(randomAccessFile, -1, -1);
                 }
+                randomAccessFile.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
             response.setBody(fileContent);
+        } else if (file.isDirectory()) {
+            response.setStatus(HTTPStatus.Forbidden);
+            response.setBody("403 FORBIDDEN!!!");
         } else {
             response.setStatus(HTTPStatus.Not_Found);
             response.setBody("404 NOT FOUND!!!");
@@ -77,20 +80,15 @@ public class DefaultServlet implements Servlet {
     public void doPost(HttpRequest request, HttpResponse response) {
     }
 
-    private byte[] readFile(File file, int start, int end) throws IOException {
-        byte[] fileContent = new byte[0];
-        FileInputStream fileInputStream;
-        if (file.exists() && file.isFile()) {
-            fileInputStream = new FileInputStream(file);
-            if (start != -1 && end != -1) {
-                fileInputStream.skip(start);
-                fileContent = new byte[end - start];
-            } else {
-                fileContent = new byte[(int) file.length()];
-            }
-            fileInputStream.read(fileContent);
-            fileInputStream.close();
+    private byte[] readFile(RandomAccessFile randomAccessFile, int start, int end) throws IOException {
+        byte[] fileContent;
+        if (start != -1 && end != -1) {
+            randomAccessFile.seek(start);
+            fileContent = new byte[end - start];
+        } else {
+            fileContent = new byte[(int) randomAccessFile.length()];
         }
+        randomAccessFile.read(fileContent);
         return fileContent;
     }
 }
